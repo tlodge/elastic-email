@@ -72,9 +72,8 @@ function elastic_email_settings_form() {
   $form['credentials']['test']['test_config_button'] = array(
     '#type' => 'submit',
     '#value' => t('Test'),
-    '#executes_submit_callback' => FALSE,
     '#ajax' => array(
-      'path' => 'elastic_email_test_config',
+      'callback' => 'elastic_email_test_config',
       'wrapper' => 'elastic-email-test-wrapper',
       'effect' => 'fade',
       'method' => 'replace',
@@ -205,7 +204,8 @@ function elastic_email_test_config($form, $form_state) {
       . t('Success.')
       . '</strong>';
   }
-  return $data;
+  return $result;
+  //return $data;
   // This is an AJAX call, so return JSON data.
   //drupal_json(array('status' => TRUE, 'data' => $data));
 }
