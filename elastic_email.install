@@ -1,0 +1,140 @@
+<?php
+// $Id: elastic_email.install,v 1.1 2010/12/09 05:35:44 neilotoole Exp $
+
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Elastic Email module.
+ *
+ * This code is heavily based on (i.e. copied from) the queue_mail module by
+ * Khalid Baheyeldin of 2bits.com.
+ */
+
+
+/**
+ * Constant for the 'smtp_library' variable.
+ */
+define('DRUPAL_SMTP_LIBRARY', 'smtp_library');
+
+
+/**
+ * Return the path to the file containing the drupal_mail_wrapper() function
+ * implementation.
+ *
+ * @return
+ *   The email library file path.
+ */
+function elastic_email_library_path() {
+
+  return drupal_get_path('module', 'elastic_email') . '/elastic_email.inc';
+}
+
+
+/**
+ * Implements hook_requirements().
+ *
+ * Determines if there's a clash with another module over the 'smtp_library'
+ * variable. Only a single module at a time may provide the library
+ * implementation.
+ */
+function elastic_email_requirements($phase) {
+
+    // Ensure translations don't break at install time
+  $t = get_t();
+
+  $req['elastic_email'] = array('title' => $t('Elastic Email'), 'value' => DRUPAL_SMTP_LIBRARY);
+
+  $lib = variable_get(DRUPAL_SMTP_LIBRARY, '');
+  $our_lib = elastic_email_library_path();
+
+  if (!$lib) {
+    $req['elastic_email']['severity'] = REQUIREMENT_OK;
+    $req['elastic_email']['description'] = $t(
+      'The variable "smtp_library" is not set. Elastic Email will set it to "@lib" so that emails go out to the Elastic Email service.',
+      array('@lib' => $lib));
+    return $req;
+  }
+
+  if ($lib == $our_lib) {
+    $req['elastic_email']['severity'] = REQUIREMENT_OK;
+    $req['elastic_email']['description'] = $t(
+      'The variable "smtp_library" is set to "@lib". Emails will be sent via the Elastic Email service.',
+      array('@lib' => $lib));
+    return $req;
+  }
+  else {
+    $req['elastic_email']['severity'] = REQUIREMENT_ERROR;
+    $req['elastic_email']['description'] = $t(
+      'The variable "smtp_library" is set to "@lib". This means another module is using another smtp_library. Be aware that this can cause emails not to be sent properly. Please unset the "smtp_library" manually, or disable the module that uses it, then disable and reenable this module.',
+      array('@lib' => $lib));
+    return $req;
+  }
+}
+
+
+/**
+ * Implements hook_install().
+ */
+function elastic_email_install() {
+
+  // Ensure translations don't break at install time
+  $t = get_t();
+
+  // Provide a helpful link to the user at install time.
+  $config_link = l($t('Administer > Site configuration > Elastic Email'),
+    'admin/settings/elastic_email');
+
+  $help_link = l($t('Administer > Help > Elastic Email'),
+    'admin/help/elastic_email');
+
+  drupal_set_message($t('Elastic Email settings are available at !config, and online help is available at !help.',
+    array('!config' => $config_link, '!help' => $help_link)));
+}
+
+
+
+/**
+ * Implements hook_enable().
+ */
+function elastic_email_enable() {
+
+  // Ensure translations don't break at install time
+  $t = get_t();
+
+  $lib = variable_get(DRUPAL_SMTP_LIBRARY, '');
+  if ($lib) {
+    drupal_set_message(
+      $t('The variable "smtp_library" is set to @lib. This means another module is using another smtp_library. Be aware that this can cause emails not to be sent properly. Please unset the "smtp_library" manually, or disable the module that uses it, then disable and reenable this module.',
+        array('@lib' => $lib)),
+        'error');
+  }
+  else {
+    variable_set(DRUPAL_SMTP_LIBRARY, elastic_email_library_path());
+  }
+}
+
+
+/**
+ * Implements hook_disable().
+ */
+function elastic_email_disable() {
+  // Check if Drupal is using our SMTP library, and if so, unset that variable.
+  $lib = variable_get(DRUPAL_SMTP_LIBRARY, '');
+
+  if ($lib == elastic_email_library_path()) {
+    variable_set(DRUPAL_SMTP_LIBRARY, '');
+  }
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function elastic_email_uninstall() {
+
+  // Remove the variables we've set.
+  variable_del(ELASTIC_EMAIL_USERNAME);
+  variable_del(ELASTIC_EMAIL_API_KEY);
+  variable_del(ELASTIC_EMAIL_QUEUE_ENABLED);
+  variable_del(ELASTIC_EMAIL_LOG_SUCCESS);
+}

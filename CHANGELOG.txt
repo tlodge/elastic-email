@@ -1,0 +1,5 @@
+// $Id: CHANGELOG.txt,v 1.1 2010/12/09 05:35:44 neilotoole Exp $
+
+ Elastic Email 6.x-1.0
+==========================================
+- Initial release.

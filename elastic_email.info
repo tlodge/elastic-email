@@ -1,0 +1,4 @@
+name = Elastic Email
+core = 7.x
+package = Mail
+description = Sends Drupal email via the Elastic Email service.
