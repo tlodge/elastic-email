@@ -74,7 +74,7 @@ function elastic_email_settings_form() {
     '#value' => t('Test'),
     '#executes_submit_callback' => FALSE,
     '#ajax' => array(
-      'path' => 'admin/settings/elastic_email/test',
+      'path' => 'elastic_email_test_config',
       'wrapper' => 'elastic-email-test-wrapper',
       'effect' => 'fade',
       'method' => 'replace',
